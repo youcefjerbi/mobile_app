@@ -1,0 +1,401 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBAL HARDENED HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidTimestamp(val) {
+      return val is timestamp && val <= request.time;
+    }
+
+    // --- ENTITY VALIDATION BLUEPRINTS ---
+
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.accountType is string && (data.accountType == 'patient' || data.accountType == 'provider') &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100 &&
+             data.email is string && data.email.size() <= 160 &&
+             (!('organizationName' in data) || (data.organizationName is string && data.organizationName.size() <= 150)) &&
+             (!('licenseOrNpi' in data) || (data.licenseOrNpi is string && data.licenseOrNpi.size() <= 60)) &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidHealthProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 120 &&
+             data.dateOfBirth is string && data.dateOfBirth.size() <= 30 &&
+             data.bloodType is string && data.bloodType.size() <= 12 &&
+             data.allergies is string && data.allergies.size() <= 400 &&
+             data.chronicConditions is string && data.chronicConditions.size() <= 400 &&
+             data.emergencyContact is string && data.emergencyContact.size() <= 150 &&
+             data.insuranceProvider is string && data.insuranceProvider.size() <= 120 &&
+             data.insuranceMemberId is string && data.insuranceMemberId.size() <= 80 &&
+             data.insuranceGroupNumber is string && data.insuranceGroupNumber.size() <= 80 &&
+             data.insurancePlanType is string && data.insurancePlanType.size() <= 100 &&
+             data.insuranceValidThru is string && data.insuranceValidThru.size() <= 30 &&
+             data.connectedEmail is string && data.connectedEmail.size() <= 160 &&
+             data.emailSyncEnabled is bool &&
+             data.calendarSyncEnabled is bool &&
+             data.preferredClinicRadiusKm is int && data.preferredClinicRadiusKm >= 1 && data.preferredClinicRadiusKm <= 500 &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidMedication(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+             data.dosage is string && data.dosage.size() >= 1 && data.dosage.size() <= 60 &&
+             data.frequency is string && data.frequency.size() <= 60 &&
+             data.scheduledTime is string && data.scheduledTime.size() <= 30 &&
+             data.timeSlot is string && (data.timeSlot == 'morning' || data.timeSlot == 'afternoon' || data.timeSlot == 'evening' || data.timeSlot == 'night') &&
+             data.instructions is string && data.instructions.size() <= 240 &&
+             data.takenToday is bool &&
+             data.lastTakenDate is string && data.lastTakenDate.size() <= 30 &&
+             data.prescribedBy is string && data.prescribedBy.size() <= 120 &&
+             data.active is bool &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidAppointment(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.specialty is string && data.specialty.size() <= 100 &&
+             data.providerName is string && data.providerName.size() <= 120 &&
+             data.facilityName is string && data.facilityName.size() <= 160 &&
+             data.scheduledDateTime is string && data.scheduledDateTime.size() <= 60 &&
+             data.durationMinutes is int && data.durationMinutes >= 5 && data.durationMinutes <= 480 &&
+             data.status is string && (data.status == 'suggested' || data.status == 'approved' || data.status == 'booked' || data.status == 'completed' || data.status == 'cancelled') &&
+             data.agentRationale is string && data.agentRationale.size() <= 600 &&
+             data.webCollectedPrep is string && data.webCollectedPrep.size() <= 4000 &&
+             data.calendarSynced is bool &&
+             data.emailNotified is bool &&
+             data.verifiedByProvider is bool &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidCommsSignal(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.sourceType is string && (data.sourceType == 'calendar' || data.sourceType == 'email') &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+             data.senderOrLocation is string && data.senderOrLocation.size() <= 160 &&
+             data.timestampLabel is string && data.timestampLabel.size() <= 60 &&
+             data.summary is string && data.summary.size() <= 600 &&
+             data.actionNeeded is bool &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isValidCareAuthorization(data) {
+      return data.patientUid is string && data.patientUid.size() >= 1 && data.patientUid.size() <= 128 &&
+             data.patientName is string && data.patientName.size() >= 1 && data.patientName.size() <= 120 &&
+             data.patientEmail is string && data.patientEmail.size() <= 160 &&
+             data.providerEmail is string && data.providerEmail.size() >= 3 && data.providerEmail.size() <= 160 &&
+             data.providerUid is string && data.providerUid.size() <= 128 &&
+             data.accessCode is string && data.accessCode.size() >= 4 && data.accessCode.size() <= 32 &&
+             data.organizationLabel is string && data.organizationLabel.size() >= 1 && data.organizationLabel.size() <= 160 &&
+             data.grantStatus is string && (data.grantStatus == 'active' || data.grantStatus == 'revoked') &&
+             data.shareInsuranceCard is bool &&
+             data.shareMedications is bool &&
+             data.shareAppointments is bool &&
+             data.sharePersonalClinical is bool &&
+             data.insuranceSnapshot is string && data.insuranceSnapshot.size() <= 2000 &&
+             data.medicationsSnapshot is string && data.medicationsSnapshot.size() <= 3000 &&
+             data.appointmentsSnapshot is string && data.appointmentsSnapshot.size() <= 3000 &&
+             data.clinicalSnapshot is string && data.clinicalSnapshot.size() <= 2000 &&
+             data.verificationStatus is string && (data.verificationStatus == 'pending' || data.verificationStatus == 'verified' || data.verificationStatus == 'flagged') &&
+             data.verificationNotes is string && data.verificationNotes.size() <= 1000 &&
+             data.verifiedByEmail is string && data.verifiedByEmail.size() <= 160 &&
+             data.verifiedAtLabel is string && data.verifiedAtLabel.size() <= 60 &&
+             isValidTimestamp(data.createdAt) &&
+             (!('updatedAt' in data) || isValidTimestamp(data.updatedAt));
+    }
+
+    function isAuthorizedProvider(data) {
+      return isSignedIn() &&
+             data.grantStatus == 'active' &&
+             (
+               data.providerUid == request.auth.uid ||
+               (request.auth.token.email_verified == true && data.providerEmail == request.auth.token.email)
+             );
+    }
+
+    // --- USER PROFILE & PRIVATE SUBCOLLECTIONS ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'accountType', 'displayName', 'email', 'createdAt']) &&
+                       incoming().keys().hasOnly(['userId', 'accountType', 'displayName', 'email', 'organizationName', 'licenseOrNpi', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['accountType', 'displayName', 'email', 'organizationName', 'licenseOrNpi', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      match /health_profile/{profileId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(profileId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(profileId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'fullName', 'dateOfBirth', 'bloodType', 'allergies',
+                           'chronicConditions', 'emergencyContact', 'insuranceProvider',
+                           'insuranceMemberId', 'insuranceGroupNumber', 'insurancePlanType',
+                           'insuranceValidThru', 'connectedEmail', 'emailSyncEnabled',
+                           'calendarSyncEnabled', 'preferredClinicRadiusKm', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'fullName', 'dateOfBirth', 'bloodType', 'allergies',
+                           'chronicConditions', 'emergencyContact', 'insuranceProvider',
+                           'insuranceMemberId', 'insuranceGroupNumber', 'insurancePlanType',
+                           'insuranceValidThru', 'connectedEmail', 'emailSyncEnabled',
+                           'calendarSyncEnabled', 'preferredClinicRadiusKm', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidHealthProfile(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(profileId) &&
+                         request.auth.uid == userId &&
+                         isValidHealthProfile(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'fullName', 'dateOfBirth', 'bloodType', 'allergies',
+                           'chronicConditions', 'emergencyContact', 'insuranceProvider',
+                           'insuranceMemberId', 'insuranceGroupNumber', 'insurancePlanType',
+                           'insuranceValidThru', 'connectedEmail', 'emailSyncEnabled',
+                           'calendarSyncEnabled', 'preferredClinicRadiusKm', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(profileId) && request.auth.uid == userId;
+      }
+
+      match /medications/{medId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(medId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(medId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'name', 'dosage', 'frequency', 'scheduledTime',
+                           'timeSlot', 'instructions', 'takenToday', 'lastTakenDate',
+                           'prescribedBy', 'active', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'name', 'dosage', 'frequency', 'scheduledTime',
+                           'timeSlot', 'instructions', 'takenToday', 'lastTakenDate',
+                           'prescribedBy', 'active', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidMedication(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(medId) &&
+                         request.auth.uid == userId &&
+                         isValidMedication(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'name', 'dosage', 'frequency', 'scheduledTime',
+                           'timeSlot', 'instructions', 'takenToday', 'lastTakenDate',
+                           'prescribedBy', 'active', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(medId) && request.auth.uid == userId;
+      }
+
+      match /appointments/{appointmentId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(appointmentId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(appointmentId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'title', 'specialty', 'providerName', 'facilityName',
+                           'scheduledDateTime', 'durationMinutes', 'status', 'agentRationale',
+                           'webCollectedPrep', 'calendarSynced', 'emailNotified',
+                           'verifiedByProvider', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'title', 'specialty', 'providerName', 'facilityName',
+                           'scheduledDateTime', 'durationMinutes', 'status', 'agentRationale',
+                           'webCollectedPrep', 'calendarSynced', 'emailNotified',
+                           'verifiedByProvider', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidAppointment(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(appointmentId) &&
+                         request.auth.uid == userId &&
+                         existing().status != 'completed' &&
+                         existing().status != 'cancelled' &&
+                         isValidAppointment(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'specialty', 'providerName', 'facilityName',
+                           'scheduledDateTime', 'durationMinutes', 'status', 'agentRationale',
+                           'webCollectedPrep', 'calendarSynced', 'emailNotified',
+                           'verifiedByProvider', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(appointmentId) && request.auth.uid == userId;
+      }
+
+      match /comms_context/{signalId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(signalId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(signalId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll([
+                           'userId', 'sourceType', 'title', 'senderOrLocation',
+                           'timestampLabel', 'summary', 'actionNeeded', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'sourceType', 'title', 'senderOrLocation',
+                           'timestampLabel', 'summary', 'actionNeeded', 'createdAt', 'updatedAt'
+                         ]) &&
+                         isValidCommsSignal(incoming(), userId);
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(signalId) &&
+                         request.auth.uid == userId &&
+                         isValidCommsSignal(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'sourceType', 'title', 'senderOrLocation',
+                           'timestampLabel', 'summary', 'actionNeeded', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(signalId) && request.auth.uid == userId;
+      }
+    }
+
+    // --- ZERO-TRUST PATIENT-TO-PROVIDER / INSURANCE AUTHORIZATIONS ---
+
+    match /care_authorizations/{grantId} {
+      allow get: if isSignedIn() &&
+                    isValidId(grantId) &&
+                    (existing().patientUid == request.auth.uid || isAuthorizedProvider(existing()));
+
+      allow list: if isSignedIn() &&
+                     (
+                       existing().patientUid == request.auth.uid ||
+                       (
+                         existing().grantStatus == 'active' &&
+                         (
+                           existing().providerUid == request.auth.uid ||
+                           (request.auth.token.email_verified == true && existing().providerEmail == request.auth.token.email)
+                         )
+                       )
+                     );
+
+      allow create: if isSignedIn() &&
+                       isValidId(grantId) &&
+                       incoming().patientUid == request.auth.uid &&
+                       incoming().providerUid == '' &&
+                       incoming().grantStatus == 'active' &&
+                       incoming().verificationStatus == 'pending' &&
+                       incoming().keys().hasAll([
+                         'patientUid', 'patientName', 'patientEmail', 'providerEmail',
+                         'providerUid', 'accessCode', 'organizationLabel', 'grantStatus',
+                         'shareInsuranceCard', 'shareMedications', 'shareAppointments',
+                         'sharePersonalClinical', 'insuranceSnapshot', 'medicationsSnapshot',
+                         'appointmentsSnapshot', 'clinicalSnapshot', 'verificationStatus',
+                         'verificationNotes', 'verifiedByEmail', 'verifiedAtLabel', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'patientUid', 'patientName', 'patientEmail', 'providerEmail',
+                         'providerUid', 'accessCode', 'organizationLabel', 'grantStatus',
+                         'shareInsuranceCard', 'shareMedications', 'shareAppointments',
+                         'sharePersonalClinical', 'insuranceSnapshot', 'medicationsSnapshot',
+                         'appointmentsSnapshot', 'clinicalSnapshot', 'verificationStatus',
+                         'verificationNotes', 'verifiedByEmail', 'verifiedAtLabel', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidCareAuthorization(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(grantId) &&
+                       isValidCareAuthorization(incoming()) &&
+                       incoming().patientUid == existing().patientUid &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action 1: Patient updates snapshots, consent scopes, or revokes access
+                         (
+                           existing().patientUid == request.auth.uid &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'providerEmail', 'organizationLabel', 'grantStatus',
+                             'shareInsuranceCard', 'shareMedications', 'shareAppointments',
+                             'sharePersonalClinical', 'insuranceSnapshot', 'medicationsSnapshot',
+                             'appointmentsSnapshot', 'clinicalSnapshot', 'updatedAt'
+                           ])
+                         ) ||
+                         // Action 2: Authorized Healthcare Provider / Insurer verifies or flags active authorization
+                         (
+                           isAuthorizedProvider(existing()) &&
+                           incoming().grantStatus == existing().grantStatus &&
+                           (incoming().providerUid == '' || incoming().providerUid == request.auth.uid) &&
+                           (incoming().verifiedByEmail == '' || (request.auth.token.email_verified == true && incoming().verifiedByEmail == request.auth.token.email)) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'providerUid', 'verificationStatus', 'verificationNotes',
+                             'verifiedByEmail', 'verifiedAtLabel', 'updatedAt'
+                           ])
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(grantId) && existing().patientUid == request.auth.uid;
+    }
+  }
+}

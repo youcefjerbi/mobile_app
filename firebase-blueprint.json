@@ -1,0 +1,188 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Account profile identifying whether the user operates in the Citizen/Patient portal or Healthcare Provider/Insurance portal.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the account owner" },
+        "accountType": { "type": "string", "enum": ["patient", "provider"], "description": "Portal role" },
+        "displayName": { "type": "string", "description": "Full display name" },
+        "email": { "type": "string", "description": "Verified Google account email" },
+        "organizationName": { "type": "string", "description": "Clinic, hospital, or insurer name for provider accounts" },
+        "licenseOrNpi": { "type": "string", "description": "Provider NPI or insurer payer ID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp (FieldValue.serverTimestamp())" }
+      },
+      "required": ["userId", "accountType", "displayName", "email", "createdAt"]
+    },
+    "PatientHealthProfile": {
+      "title": "PatientHealthProfile",
+      "description": "Citizen personal health info, digital insurance card, and connected email/calendar settings.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "dateOfBirth": { "type": "string" },
+        "bloodType": { "type": "string" },
+        "allergies": { "type": "string" },
+        "chronicConditions": { "type": "string" },
+        "emergencyContact": { "type": "string" },
+        "insuranceProvider": { "type": "string" },
+        "insuranceMemberId": { "type": "string" },
+        "insuranceGroupNumber": { "type": "string" },
+        "insurancePlanType": { "type": "string" },
+        "insuranceValidThru": { "type": "string" },
+        "connectedEmail": { "type": "string" },
+        "emailSyncEnabled": { "type": "boolean" },
+        "calendarSyncEnabled": { "type": "boolean" },
+        "preferredClinicRadiusKm": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "fullName", "dateOfBirth", "bloodType", "allergies",
+        "chronicConditions", "emergencyContact", "insuranceProvider",
+        "insuranceMemberId", "insuranceGroupNumber", "insurancePlanType",
+        "insuranceValidThru", "connectedEmail", "emailSyncEnabled",
+        "calendarSyncEnabled", "preferredClinicRadiusKm", "createdAt"
+      ]
+    },
+    "Medication": {
+      "title": "Medication",
+      "description": "Daily medication schedule entry managed by the personal health agent.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "dosage": { "type": "string" },
+        "frequency": { "type": "string" },
+        "scheduledTime": { "type": "string" },
+        "timeSlot": { "type": "string", "enum": ["morning", "afternoon", "evening", "night"] },
+        "instructions": { "type": "string" },
+        "takenToday": { "type": "boolean" },
+        "lastTakenDate": { "type": "string" },
+        "prescribedBy": { "type": "string" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "name", "dosage", "frequency", "scheduledTime",
+        "timeSlot", "instructions", "takenToday", "lastTakenDate",
+        "prescribedBy", "active", "createdAt"
+      ]
+    },
+    "CareAppointment": {
+      "title": "CareAppointment",
+      "description": "Preventive care suggestion or patient-approved booked appointment with web-collected coordination prep.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "specialty": { "type": "string" },
+        "providerName": { "type": "string" },
+        "facilityName": { "type": "string" },
+        "scheduledDateTime": { "type": "string" },
+        "durationMinutes": { "type": "integer" },
+        "status": { "type": "string", "enum": ["suggested", "approved", "booked", "completed", "cancelled"] },
+        "agentRationale": { "type": "string" },
+        "webCollectedPrep": { "type": "string" },
+        "calendarSynced": { "type": "boolean" },
+        "emailNotified": { "type": "boolean" },
+        "verifiedByProvider": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "title", "specialty", "providerName", "facilityName",
+        "scheduledDateTime", "durationMinutes", "status", "agentRationale",
+        "webCollectedPrep", "calendarSynced", "emailNotified",
+        "verifiedByProvider", "createdAt"
+      ]
+    },
+    "CommsSignal": {
+      "title": "CommsSignal",
+      "description": "Connected calendar event or personal health email notice used for agent coordination.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "sourceType": { "type": "string", "enum": ["calendar", "email"] },
+        "title": { "type": "string" },
+        "senderOrLocation": { "type": "string" },
+        "timestampLabel": { "type": "string" },
+        "summary": { "type": "string" },
+        "actionNeeded": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "sourceType", "title", "senderOrLocation",
+        "timestampLabel", "summary", "actionNeeded", "createdAt"
+      ]
+    },
+    "CareAuthorizationGrant": {
+      "title": "CareAuthorizationGrant",
+      "description": "Zero-trust patient authorization grant allowing a designated healthcare provider or insurer to view and verify authorized patient data.",
+      "type": "object",
+      "properties": {
+        "patientUid": { "type": "string" },
+        "patientName": { "type": "string" },
+        "patientEmail": { "type": "string" },
+        "providerEmail": { "type": "string" },
+        "providerUid": { "type": "string" },
+        "accessCode": { "type": "string" },
+        "organizationLabel": { "type": "string" },
+        "grantStatus": { "type": "string", "enum": ["active", "revoked"] },
+        "shareInsuranceCard": { "type": "boolean" },
+        "shareMedications": { "type": "boolean" },
+        "shareAppointments": { "type": "boolean" },
+        "sharePersonalClinical": { "type": "boolean" },
+        "insuranceSnapshot": { "type": "string" },
+        "medicationsSnapshot": { "type": "string" },
+        "appointmentsSnapshot": { "type": "string" },
+        "clinicalSnapshot": { "type": "string" },
+        "verificationStatus": { "type": "string", "enum": ["pending", "verified", "flagged"] },
+        "verificationNotes": { "type": "string" },
+        "verifiedByEmail": { "type": "string" },
+        "verifiedAtLabel": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "patientUid", "patientName", "patientEmail", "providerEmail",
+        "providerUid", "accessCode", "organizationLabel", "grantStatus",
+        "shareInsuranceCard", "shareMedications", "shareAppointments",
+        "sharePersonalClinical", "insuranceSnapshot", "medicationsSnapshot",
+        "appointmentsSnapshot", "clinicalSnapshot", "verificationStatus",
+        "verificationNotes", "verifiedByEmail", "verifiedAtLabel", "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User account profile and portal role."
+    },
+    "/users/{userId}/health_profile/{profileId}": {
+      "schema": { "$ref": "#/entities/PatientHealthProfile" },
+      "description": "Citizen health profile, insurance card, and email/calendar sync preferences."
+    },
+    "/users/{userId}/medications/{medId}": {
+      "schema": { "$ref": "#/entities/Medication" },
+      "description": "Daily medication schedule for the authenticated patient."
+    },
+    "/users/{userId}/appointments/{appointmentId}": {
+      "schema": { "$ref": "#/entities/CareAppointment" },
+      "description": "Preventive care suggestions and booked treatment appointments."
+    },
+    "/users/{userId}/comms_context/{signalId}": {
+      "schema": { "$ref": "#/entities/CommsSignal" },
+      "description": "Synced calendar events and email notices for scheduling coordination."
+    },
+    "/care_authorizations/{grantId}": {
+      "schema": { "$ref": "#/entities/CareAuthorizationGrant" },
+      "description": "Patient-granted data authorizations verifiable by designated healthcare providers or insurers."
+    }
+  }
+}

@@ -1,0 +1,10 @@
+/* Personal opens focused sub-areas rather than keeping every section in the dock. */
+.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(1),
+.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(2){display:none}
+.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(3),
+.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(4),
+.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(5){display:flex;flex:1}
+.bottom-nav button:nth-child(3)::after{content:'Health';font-size:9px}
+.bottom-nav button:nth-child(4)::after{content:'Card';font-size:9px}
+.bottom-nav button:nth-child(3)[aria-current]>span{background:#fee2e2;color:#dc2626}
+.bottom-nav button:nth-child(4)[aria-current]>span{background:#dbeafe;color:#2563eb}

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "82839173874",
+    "project_id": "junction26hel-7674",
+    "storage_bucket": "junction26hel-7674.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82839173874:android:d6948875975ef56d7f2e6b",
+        "android_client_info": {
+          "package_name": "com.aistudio.carepulse.xmktpv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "82839173874-k5tkn1kte9eq4c5aiet1sdpiik7srou4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aistudio.carepulse.xmktpv",
+            "certificate_hash": "c1f4cd877c3af8d01fc00d29f39f20b146263b0f"
+          }
+        },
+        {
+          "client_id": "82839173874-ahcekvuefhb0ijpf4ai0r9h84hsslm9l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-EF2kAKFFdJds-tg02R5zgDtSJWPGhZc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "82839173874-ahcekvuefhb0ijpf4ai0r9h84hsslm9l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

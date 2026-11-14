@@ -1,0 +1,6 @@
+{
+  "name": "CarePulse",
+  "description": "Personal health agent and secure healthcare provider/insurance verification platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,25 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const elements = {'#content':{}, '.nav':{}, '#details':{showModal(){this.open=true},close(){this.open=false}}};
+const context = {document:{querySelector:s=>elements[s]},window:{scrollTo(){}}};
+vm.createContext(context);
+vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../preview/app.js'),'utf8'),context);
+const run=code=>vm.runInContext(code,context);
+assert(elements['#content'].innerHTML.includes('0 of 2'));
+run('toggle(1);toggle(2)');assert(elements['#content'].innerHTML.includes('All done for today.'));
+run('toggle(1)');assert(elements['#content'].innerHTML.includes('1 of 2'));
+assert.equal(run("saveRecord('medication',['New medicine','1 tablet','09:00','With food'])"),null);
+assert.equal(run('medications.length'),3);
+assert(run("saveRecord('medication',['Invalid','1 tablet','25:00',''])"));assert.equal(run('medications.length'),3);
+run('removeMed(3)');assert.equal(run('medications.length'),2);
+assert.equal(run("validDate('2026-02-29 09:00')"),false);
+assert.equal(run("validDate('2028-02-29 09:00')"),true);
+assert.equal(run("saveRecord('visit',['Checkup','Doctor','Clinic','2028-02-29 09:00'])"),null);
+run('completeVisit(2)');assert.equal(run('appointments.find(a=>a.id===2).status'),'completed');
+run("saveRecord('profile',['<img src=x onerror=alert(1)>','Plan','','']);setTab(3)");
+assert(!elements['#content'].innerHTML.includes('<img src=x'));
+assert(elements['#content'].innerHTML.includes('&lt;img'));
+for(let tab=0;tab<4;tab++){run(`setTab(${tab})`);assert(elements['.nav'].innerHTML.includes('aria-current="page"'))}
+run("openForm('profile')");assert.equal(elements['#details'].open,true);
+console.log('PASS: progress, undo, add/remove medication, validation, visit completion, profile escaping, navigation and modal rendering');
