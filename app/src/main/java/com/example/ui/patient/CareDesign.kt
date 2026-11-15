@@ -23,7 +23,7 @@ import com.example.ui.theme.Typography
 val CareBlue = Color(0xFF155EEF)
 val CareGreen = Color(0xFF008A4B)
 val CareRed = Color(0xFFE52B38)
-val CareYellow = Color(0xFFFFD43B)
+val CareYellow = Color(0xFF191970)
 val CareInk = Color(0xFF111111)
 
 @Composable
