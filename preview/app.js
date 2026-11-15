@@ -1,37 +1,263 @@
 let tab = 0;
-const today = () => new Date().toLocaleDateString('en-CA');
+const today = () => new Date().toLocaleDateString("en-CA");
 const upcoming = new Date(Date.now() + 4 * 86400000);
-const dateLabel = [upcoming.getFullYear(), String(upcoming.getMonth()+1).padStart(2,'0'), String(upcoming.getDate()).padStart(2,'0')].join('-');
+const dateLabel = [
+  upcoming.getFullYear(),
+  String(upcoming.getMonth() + 1).padStart(2, "0"),
+  String(upcoming.getDate()).padStart(2, "0"),
+].join("-");
 let medications = [
-  {id:1,name:'Vitamin D3',dose:'1 capsule',time:'08:00',instructions:'With breakfast',taken:''},
-  {id:2,name:'Daily supplement',dose:'1 tablet',time:'19:00',instructions:'With dinner',taken:''}
+  {
+    id: 1,
+    name: "Vitamin D3",
+    dose: "1 capsule",
+    time: "08:00",
+    instructions: "With breakfast",
+    taken: "",
+  },
+  {
+    id: 2,
+    name: "Daily supplement",
+    dose: "1 tablet",
+    time: "19:00",
+    instructions: "With dinner",
+    taken: "",
+  },
 ];
-let appointments = [{id:1,title:'Annual wellness visit',provider:'Dr. Sarah Chen',location:'Riverside Medical Center',date:dateLabel+' 10:30',status:'booked'}];
-let profile = {name:'Alex Morgan',insurance:'Sample Health Plan',allergies:'Not recorded',emergency:'Not recorded'};
-let nextMedId=3,nextVisitId=2;
-const escapeHtml = value => String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const icons=['<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/>','<rect x="7" y="2" width="10" height="20" rx="5" transform="rotate(40 12 12)"/><path d="m8 9 8 6"/>','<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 2v6m10-6v6M3 11h18"/>','<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>'];
-function setTab(n){tab=n;render();window.scrollTo(0,0)}
-function toggle(id){const m=medications.find(m=>m.id===id);if(m)m.taken=m.taken===today()?'':today();render()}
-function meds(){return medications.map(m=>`<article class="card"><div class="medrow"><div class="medicon" aria-hidden="true">◈</div><div><h4>${escapeHtml(m.name)}</h4><p>${escapeHtml(m.dose)} · ${escapeHtml(m.instructions)}</p></div></div><div class="medfoot"><span class="badge">◷ ${escapeHtml(m.time)}</span><button class="take ${m.taken===today()?'done':''}" aria-pressed="${m.taken===today()}" onclick="toggle(${m.id})">${m.taken===today()?'✓ Taken · Undo':'+ Mark as taken'}</button>${tab===1?`<button class="link" onclick="confirmRemove(${m.id})">Remove</button>`:''}</div></article>`).join('')||'<article class="card"><h4>No medications added</h4><p>Add your existing prescribed daily routine.</p></article>'}
-function visits(){const list=tab===0?appointments.filter(a=>a.status==='booked'&&new Date(a.date.replace(' ','T'))>=new Date()).slice(0,1):appointments;return list.map(a=>`<article class="card"><span class="badge">${escapeHtml(a.status)} · ${escapeHtml(a.date)}</span><h4 style="margin-top:13px">${escapeHtml(a.title)}</h4><p>${escapeHtml(a.provider||'Provider not recorded')}</p><p>${escapeHtml(a.location||'Location not recorded')}</p><button class="visitbutton" onclick="showVisit(${a.id})">View appointment ↗</button></article>`).join('')||'<article class="card"><h4>No upcoming visits</h4><p>Record an appointment arranged with your care team.</p></article>'}
-function modal(html){const dialog=document.querySelector('#details');dialog.innerHTML=html;dialog.showModal()}
-function closeDialog(){document.querySelector('#details').close()}
-function showVisit(id){const a=appointments.find(a=>a.id===id);if(!a)return;modal(`<span class="eyebrow">APPOINTMENT DETAILS</span><h2>${escapeHtml(a.title)}</h2><p>${escapeHtml(a.date)}<br>${escapeHtml(a.provider)}<br>${escapeHtml(a.location)}</p><p>${escapeHtml(a.status)} · Demo record</p><p>Changes here do not book, cancel, or contact a provider.</p>${a.status==='booked'?`<button onclick="completeVisit(${id})">Mark completed</button>`:''}<button class="secondary" onclick="closeDialog()">Done</button>`)}
-function completeVisit(id){const a=appointments.find(a=>a.id===id);if(a)a.status='completed';closeDialog();render()}
-function confirmRemove(id){const m=medications.find(m=>m.id===id);if(!m)return;modal(`<h2>Remove ${escapeHtml(m.name)}?</h2><p>This removes the entry from the tracker. It does not change a prescription.</p><button onclick="removeMed(${id})">Remove</button><button class="secondary" onclick="closeDialog()">Keep medication</button>`)}
-function removeMed(id){medications=medications.filter(m=>m.id!==id);closeDialog();render()}
-function openForm(type){
- const labels=type==='medication'?['Medication name','Prescribed dose','Daily time (HH:mm)','Instructions (optional)']:type==='visit'?['Visit title','Provider (optional)','Location (optional)','Date & time (YYYY-MM-DD HH:mm)']:['Full name','Insurance provider','Allergies','Emergency contact'];
- const values=type==='profile'?[profile.name,profile.insurance,profile.allergies,profile.emergency]:['','',type==='medication'?'08:00':'',''];
- modal(`<h2>${type==='medication'?'Add daily medication':type==='visit'?'Record a visit':'Edit profile'}</h2><p>${type==='medication'?'Copy an existing prescribed routine. One daily dose per entry.':type==='visit'?'This records an appointment; it does not make a booking.':'Fictional demo information only.'}</p><form onsubmit="event.preventDefault();submitForm('${type}')">${labels.map((l,i)=>`<label for="field-${i}">${l}</label><input id="field-${i}" value="${escapeHtml(values[i])}" maxlength="${i===0?120:240}" ${i===0?'required':''}>`).join('')}<p id="form-error" role="alert"></p><button type="submit">Save</button><button type="button" class="secondary" onclick="closeDialog()">Cancel</button></form>`)
+let appointments = [
+  {
+    id: 1,
+    title: "Annual wellness visit",
+    provider: "Dr. Sarah Chen",
+    location: "Riverside Medical Center",
+    date: dateLabel + " 10:30",
+    status: "booked",
+  },
+];
+let profile = {
+  name: "Alex Morgan",
+  insurance: "Sample Health Plan",
+  allergies: "Not recorded",
+  emergency: "Not recorded",
+};
+let nextMedId = 3,
+  nextVisitId = 2;
+const escapeHtml = (value) =>
+  String(value).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
+const icons = [
+  '<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3z"/>',
+  '<rect x="7" y="2" width="10" height="20" rx="5" transform="rotate(40 12 12)"/><path d="m8 9 8 6"/>',
+  '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 2v6m10-6v6M3 11h18"/>',
+  '<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',
+];
+function setTab(n) {
+  tab = n;
+  render();
+  window.scrollTo(0, 0);
 }
-function validDate(value){if(!/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/.test(value))return false;const [y,m,d,h,min]=value.match(/\d+/g).map(Number);const date=new Date(y,m-1,d,h,min);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d&&date.getHours()===h&&date.getMinutes()===min}
-function saveRecord(type,fields){const [a,b,c,d]=fields.map(v=>v.trim());if(!a||a.length>120)return 'Enter a name or title (1–120 characters).';
- if(type==='medication'){if(!b||b.length>60)return 'Enter the prescribed dose (1–60 characters).';if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(c))return 'Use a valid 24-hour time, for example 08:00.';medications.push({id:nextMedId++,name:a,dose:b,time:c,instructions:d,taken:''});medications.sort((a,b)=>a.time.localeCompare(b.time))}
- else if(type==='visit'){if(!validDate(d))return 'Enter a valid date and time: YYYY-MM-DD HH:mm.';appointments.push({id:nextVisitId++,title:a,provider:b,location:c,date:d,status:'booked'});appointments.sort((a,b)=>a.date.localeCompare(b.date))}
- else if(type==='profile'){profile={name:a,insurance:b,allergies:c,emergency:d}}else return 'Unknown form.';return null;
+function toggle(id) {
+  const m = medications.find((m) => m.id === id);
+  if (m) m.taken = m.taken === today() ? "" : today();
+  render();
 }
-function submitForm(type){const error=saveRecord(type,[0,1,2,3].map(i=>document.querySelector('#field-'+i).value));if(error){document.querySelector('#form-error').textContent=error;return}closeDialog();render()}
-function render(){const count=medications.filter(m=>m.taken===today()).length;const titles=['A little care,<br>every day.','Your medications','Your visits','Your health profile'];document.querySelector('#content').innerHTML=`<span class="eyebrow">${['YOUR HEALTH, TOGETHER','DAILY ROUTINE','YOUR CARE CALENDAR','PERSONAL INFORMATION'][tab]}</span><h1>${titles[tab]}</h1><p>${tab===0?'Welcome back, '+escapeHtml(profile.name.split(' ')[0])+'. Let’s take care of you.':'Your care, together in one place.'}</p>`+(tab===0?`<section class="hero"><span class="eyebrow">YOUR DAILY CHECK-IN</span><h2>${medications.length&&count===medications.length?'All done for today.':'Small steps.<br>A healthier you.'}</h2><p aria-live="polite">${count} of ${medications.length} medications marked as taken</p><div class="progress"><span style="width:${medications.length?count/medications.length*100:0}%"></span></div></section>`:'')+([0,1].includes(tab)?`<div class="section"><h3>Today's medications</h3><button class="link" onclick="openForm('medication')">+ Add</button></div>${meds()}`:'')+([0,2].includes(tab)?`<div class="section"><h3>${tab===0?'Next appointment':'Your appointments'}</h3><button class="link" onclick="openForm('visit')">+ Add</button></div>${visits()}`:'')+(tab===3?`<article class="card"><h3>${escapeHtml(profile.name)}</h3><p>Sample patient account</p>${[['Insurance',profile.insurance],['Allergies',profile.allergies],['Emergency contact',profile.emergency]].map(([l,v])=>`<h4 style="margin-top:20px">${l}</h4><p>${escapeHtml(v||'Not recorded')}</p>`).join('')}<button class="visitbutton" onclick="openForm('profile')">Edit profile</button></article><p>This browser companion uses fictional data. Google sign-in and Firestore are implemented in the Android source, not this preview. Changes reset on reload.</p>`:'')+'<div class="note">A little more clarity. A little less worry.</div>';document.querySelector('.nav').innerHTML=['Today','Medications','Visits','Profile'].map((name,i)=>`<button class="${tab===i?'active':''}" ${tab===i?'aria-current="page"':''} onclick="setTab(${i})"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[i]}</svg>${name}</button>`).join('')}
+function meds() {
+  return (
+    medications
+      .map(
+        (m) =>
+          `<article class="card"><div class="medrow"><div class="medicon" aria-hidden="true">◈</div><div><h4>${escapeHtml(m.name)}</h4><p>${escapeHtml(m.dose)} · ${escapeHtml(m.instructions)}</p></div></div><div class="medfoot"><span class="badge">◷ ${escapeHtml(m.time)}</span><button class="take ${m.taken === today() ? "done" : ""}" aria-pressed="${m.taken === today()}" onclick="toggle(${m.id})">${m.taken === today() ? "✓ Taken" : "+ Taken?"}</button>${tab === 1 ? `<button class="link" onclick="confirmRemove(${m.id})">Remove</button>` : ""}</div></article>`,
+      )
+      .join("") ||
+    '<article class="card"><h4>No medications added</h4></article>'
+  );
+}
+function visits() {
+  const list =
+    tab === 0
+      ? appointments
+          .filter(
+            (a) =>
+              a.status === "booked" &&
+              new Date(a.date.replace(" ", "T")) >= new Date(),
+          )
+          .slice(0, 1)
+      : appointments;
+  return (
+    list
+      .map(
+        (a) =>
+          `<article class="card"><span class="badge">${escapeHtml(a.status)} · ${escapeHtml(a.date)}</span><h4 style="margin-top:13px">${escapeHtml(a.title)}</h4><p>${escapeHtml(a.provider || "Provider not recorded")}</p><p>${escapeHtml(a.location || "Location not recorded")}</p><button class="visitbutton" onclick="showVisit(${a.id})">Open ↗</button></article>`,
+      )
+      .join("") ||
+    '<article class="card"><h4>No upcoming visits</h4></article>'
+  );
+}
+function modal(html) {
+  const dialog = document.querySelector("#details");
+  dialog.innerHTML = html;
+  dialog.showModal();
+}
+function closeDialog() {
+  document.querySelector("#details").close();
+}
+function showVisit(id) {
+  const a = appointments.find((a) => a.id === id);
+  if (!a) return;
+  modal(
+    `<h2>${escapeHtml(a.title)}</h2><p>${escapeHtml(a.date)}<br>${escapeHtml(a.provider)}<br>${escapeHtml(a.location)}</p><p><span class="badge">${escapeHtml(a.status)}</span></p>${a.status === "booked" ? `<button onclick="completeVisit(${id})">Mark completed</button>` : ""}<button class="secondary" onclick="closeDialog()">Done</button>`,
+  );
+}
+function completeVisit(id) {
+  const a = appointments.find((a) => a.id === id);
+  if (a) a.status = "completed";
+  closeDialog();
+  render();
+}
+function confirmRemove(id) {
+  const m = medications.find((m) => m.id === id);
+  if (!m) return;
+  modal(
+    `<h2>Remove ${escapeHtml(m.name)}?</h2><button onclick="removeMed(${id})">Remove</button><button class="secondary" onclick="closeDialog()">Keep medication</button>`,
+  );
+}
+function removeMed(id) {
+  medications = medications.filter((m) => m.id !== id);
+  closeDialog();
+  render();
+}
+function openForm(type) {
+  const labels =
+    type === "medication"
+      ? [
+          "Medication name",
+          "Prescribed dose",
+          "Daily time (HH:mm)",
+          "Instructions (optional)",
+        ]
+      : type === "visit"
+        ? [
+            "Visit title",
+            "Provider (optional)",
+            "Location (optional)",
+            "Date & time (YYYY-MM-DD HH:mm)",
+          ]
+        : ["Full name", "Insurance provider", "Allergies", "Emergency contact"];
+  const values =
+    type === "profile"
+      ? [profile.name, profile.insurance, profile.allergies, profile.emergency]
+      : ["", "", type === "medication" ? "08:00" : "", ""];
+  modal(
+    `<h2>${type === "medication" ? "Add daily medication" : type === "visit" ? "Record a visit" : "Edit profile"}</h2><form onsubmit="event.preventDefault();submitForm('${type}')">${labels.map((l, i) => `<label for="field-${i}">${l}</label><input id="field-${i}" value="${escapeHtml(values[i])}" maxlength="${i === 0 ? 120 : 240}" ${i === 0 ? "required" : ""}>`).join("")}<p id="form-error" role="alert"></p><button type="submit">Save</button><button type="button" class="secondary" onclick="closeDialog()">Cancel</button></form>`,
+  );
+}
+function validDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/.test(value))
+    return false;
+  const [y, m, d, h, min] = value.match(/\d+/g).map(Number);
+  const date = new Date(y, m - 1, d, h, min);
+  return (
+    date.getFullYear() === y &&
+    date.getMonth() === m - 1 &&
+    date.getDate() === d &&
+    date.getHours() === h &&
+    date.getMinutes() === min
+  );
+}
+function saveRecord(type, fields) {
+  const [a, b, c, d] = fields.map((v) => v.trim());
+  if (!a || a.length > 120) return "Enter a name or title (1–120 characters).";
+  if (type === "medication") {
+    if (!b || b.length > 60)
+      return "Enter the prescribed dose (1–60 characters).";
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(c))
+      return "Use a valid 24-hour time, for example 08:00.";
+    medications.push({
+      id: nextMedId++,
+      name: a,
+      dose: b,
+      time: c,
+      instructions: d,
+      taken: "",
+    });
+    medications.sort((a, b) => a.time.localeCompare(b.time));
+  } else if (type === "visit") {
+    if (!validDate(d)) return "Enter a valid date and time: YYYY-MM-DD HH:mm.";
+    appointments.push({
+      id: nextVisitId++,
+      title: a,
+      provider: b,
+      location: c,
+      date: d,
+      status: "booked",
+    });
+    appointments.sort((a, b) => a.date.localeCompare(b.date));
+  } else if (type === "profile") {
+    profile = { name: a, insurance: b, allergies: c, emergency: d };
+  } else return "Unknown form.";
+  return null;
+}
+function submitForm(type) {
+  const error = saveRecord(
+    type,
+    [0, 1, 2, 3].map((i) => document.querySelector("#field-" + i).value),
+  );
+  if (error) {
+    document.querySelector("#form-error").textContent = error;
+    return;
+  }
+  closeDialog();
+  render();
+}
+function render() {
+  const count = medications.filter((m) => m.taken === today()).length;
+  const titles = [
+    "Today",
+    "Your medications",
+    "Your visits",
+    "Your health profile",
+  ];
+  document.querySelector("#content").innerHTML =
+    `<h1>${titles[tab]}</h1>` +
+    (tab === 0
+      ? `<section class="hero"><h2>${medications.length && count === medications.length ? "All done today." : "Small steps."}</h2><div class="progress" role="progressbar" aria-label="Medications taken" aria-valuemin="0" aria-valuemax="${medications.length}" aria-valuenow="${count}" aria-live="polite"><span style="width:${medications.length ? (count / medications.length) * 100 : 0}%"></span><b>${count}/${medications.length}</b></div></section>`
+      : "") +
+    ([0, 1].includes(tab)
+      ? `<div class="section"><h3>Today's medications</h3><button class="link" onclick="openForm('medication')">+ Add</button></div>${meds()}`
+      : "") +
+    ([0, 2].includes(tab)
+      ? `<div class="section"><h3>${tab === 0 ? "Next appointment" : "Your appointments"}</h3><button class="link" onclick="openForm('visit')">+ Add</button></div>${visits()}`
+      : "") +
+    (tab === 3
+      ? `<article class="card"><h3>${escapeHtml(profile.name)}</h3>${[
+          ["Insurance", profile.insurance],
+          ["Allergies", profile.allergies],
+          ["Emergency contact", profile.emergency],
+        ]
+          .map(
+            ([l, v]) =>
+              `<h4 style="margin-top:20px">${l}</h4><p>${escapeHtml(v || "Not recorded")}</p>`,
+          )
+          .join(
+            "",
+          )}<button class="visitbutton" onclick="openForm('profile')">Edit profile</button></article>`
+      : "") +
+    '';
+  document.querySelector(".nav").innerHTML = [
+    "Today",
+    "Medications",
+    "Visits",
+    "Profile",
+  ]
+    .map(
+      (name, i) =>
+        `<button class="${tab === i ? "active" : ""}" ${tab === i ? 'aria-current="page"' : ""} onclick="setTab(${i})"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[i]}</svg>${name}</button>`,
+    )
+    .join("");
+}
 render();

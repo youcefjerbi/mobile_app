@@ -1,10 +1,128 @@
-/* Personal opens focused sub-areas rather than keeping every section in the dock. */
-.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(1),
-.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(2){display:none}
-.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(3),
-.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(4),
-.bottom-nav:has(button:nth-child(5)[aria-current]) button:nth-child(5){display:flex;flex:1}
-.bottom-nav button:nth-child(3)::after{content:'Health';font-size:9px}
-.bottom-nav button:nth-child(4)::after{content:'Card';font-size:9px}
-.bottom-nav button:nth-child(3)[aria-current]>span{background:#fee2e2;color:#dc2626}
-.bottom-nav button:nth-child(4)[aria-current]>span{background:#dbeafe;color:#2563eb}
+/* CarePulse — navigation: bottom bar on mobile/tablet, sidebar on desktop. */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 6px max(8px, calc(var(--gutter) - 12px)) calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+}
+.bottom-nav button {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 120px;
+  min-height: 60px;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+}
+.bottom-nav button > span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 32px;
+  border-radius: var(--pill);
+}
+.bottom-nav em {
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+}
+.bottom-nav button[aria-current] {
+  color: var(--fg);
+}
+.bottom-nav button[aria-current] > span {
+  background: var(--surface);
+}
+.bottom-nav button:nth-child(2)[aria-current] > span {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.bottom-nav button:nth-child(3)[aria-current] > span {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.bottom-nav i {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--blue);
+  box-sizing: content-box;
+}
+
+/* Desktop: left sidebar instead of bottom nav */
+@media (min-width: 1025px) {
+  .app-shell {
+    padding-left: var(--sidebar);
+  }
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar);
+    padding: 28px 24px 12px;
+    background: var(--bg);
+  }
+  .app-header .avatar {
+    display: none;
+  }
+  .bottom-nav {
+    top: 100px;
+    right: auto;
+    bottom: 0;
+    width: var(--sidebar);
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 12px 16px;
+    border-top: 0;
+    background: var(--bg);
+  }
+  .app-shell::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: var(--sidebar);
+    width: 1px;
+    background: var(--line);
+    z-index: 21;
+  }
+  .bottom-nav button {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 12px;
+    max-width: none;
+    min-height: 52px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 16px;
+  }
+  .bottom-nav button:hover {
+    background: var(--surface);
+  }
+  .bottom-nav em {
+    font-size: 17px;
+  }
+  main {
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+  .toast {
+    left: calc(50% + var(--sidebar) / 2);
+    bottom: 32px;
+  }
+}
