@@ -1,5 +1,9 @@
 # CarePulse — Animated React Mobile Prototype
 
+> **Part of [CareCatalyst](https://github.com/HandanMajied2024/CareCatalyst)** (Junction 2026 · AstraZeneca *Equal Care Across Finland*).
+> Concept B = the vision: everyone has a personal health agent. Concept A (today, the county Care Pathway Agent): [HandanMajied2024/CareCatalyzer](https://github.com/HandanMajied2024/CareCatalyzer).
+> All people and data are synthetic. The agent never diagnoses. MIT licensed, see [LICENSE](LICENSE).
+
 The current frontend is a **React 19 + Vite** mobile app prototype in `frontend/`. It uses a blue 2D visual design with an animated SVG companion, character illustrations, chat transitions, typing indicators, bottom sheets, and an animated coordination timeline. No backend is implemented or required.
 
 ```sh
