@@ -1,0 +1,79 @@
+/* CarePulse — Part 2 "For you": warm page background so it reads as a different product from
+   Part 1 (white county dashboard) at a glance. Cards stay white, text stays black. */
+:root {
+  --page: #fff7e6;
+  --page-glass: rgba(255, 247, 230, 0.78);
+}
+html,
+body {
+  background-color: var(--page);
+}
+body {
+  background-image:
+    radial-gradient(60% 55% at 92% 4%, rgba(255, 214, 120, 0.55) 0%, rgba(255, 214, 120, 0) 70%),
+    radial-gradient(55% 50% at 8% 96%, rgba(255, 190, 160, 0.5) 0%, rgba(255, 190, 160, 0) 70%),
+    radial-gradient(45% 40% at 70% 85%, rgba(255, 228, 196, 0.6) 0%, rgba(255, 228, 196, 0) 70%),
+    radial-gradient(40% 35% at 35% 20%, rgba(232, 239, 255, 0.55) 0%, rgba(232, 239, 255, 0) 70%),
+    linear-gradient(160deg, #fffaf0 0%, #fff3d9 55%, #ffe9d6 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+.app-shell {
+  background: transparent;
+}
+.app-header,
+.bottom-nav {
+  background: var(--page-glass);
+}
+.part-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: var(--pill);
+  background: var(--yellow-soft);
+  border: 1px solid rgba(255, 196, 0, 0.45);
+  color: var(--fg);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.part-badge svg {
+  color: #b38600;
+}
+.app-header .part-badge {
+  margin-right: auto;
+}
+@media (min-width: 1025px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .app-header .part-badge {
+    margin-right: 0;
+  }
+  .bottom-nav {
+    top: 140px;
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .app-shell::before {
+    background: rgba(10, 10, 10, 0.08);
+  }
+}
+@media (max-width: 520px) {
+  .part-badge {
+    padding: 4px 8px;
+  }
+  .part-badge .part-badge-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+}

@@ -14,6 +14,7 @@ import { Icon, Chip, Bar } from "./icons.jsx";
 import "./styles.css";
 import "./liquid.css";
 import "./navigation.css";
+import "./warm.css";
 
 function Companion({ small = false, thinking = false }) {
   return (
@@ -212,6 +213,10 @@ function App() {
           </span>
           carepulse
         </button>
+        <span className="part-badge" title="Part 2 · CarePulse, a personal agent for one person">
+          <Icon name="user" size={16} />
+          <span className="part-badge-text">For you</span>
+        </span>
         <button className="avatar" onClick={() => go("life")} aria-label="My life">
           {context.name[0]}
         </button>
